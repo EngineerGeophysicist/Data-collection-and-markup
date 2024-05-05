@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Scrapy settings for jobparser project
+# Scrapy settings for bookparser project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,33 +7,42 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'jobparser'
+# Имя бота
+BOT_NAME = "bookparser"
 
-SPIDER_MODULES = ['jobparser.spiders']
-NEWSPIDER_MODULE = 'jobparser.spiders'
+# Расположение пауков (путь поиска)
+SPIDER_MODULES = ["bookparser.spiders"]
+# Расположение новых пауков при команде 'scrapy genspider'
+NEWSPIDER_MODULE = "bookparser.spiders"
 
+# Включим/выключим логи
+LOG_ENABLED = False
+LOG_LEVEL = 'DEBUG'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36'
+# В Chrome узнать USER_AGENT можно набрав в адресной строке 'chrome://version/'
+USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+              "like Gecko) Chrome/123.0.0.0 Safari/537.36")
 
 # Obey robots.txt rules
+# Правила работы нашего паука в зависимости от файла robots.txt (надо отключить)
 ROBOTSTXT_OBEY = False
 
-LOG_ENABLED = True
-LOG_LEVEL = 'DEBUG' #'ERROR' 'IFNO'
-#LOG_FILE = 'logs.txt'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 32
+# Число параллельных запросов (scrapy асинхронный и мгогопоточный) - одновременно может быть 16 запроса в данном случае
+CONCURRENT_REQUESTS = 16
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# DOWNLOAD_DELAY = 3
+# Пауза в секундах между пачкой запроса CONCURRENT_REQUESTS
+DOWNLOAD_DELAY = 0.1
 # The download delay setting will honor only one of:
-# CONCURRENT_REQUESTS_PER_DOMAIN = 16
-# CONCURRENT_REQUESTS_PER_IP = 16
+#CONCURRENT_REQUESTS_PER_DOMAIN = 16
+#CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
+# Включение файлов cookie
 COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
@@ -43,32 +50,33 @@ COOKIES_ENABLED = True
 
 # Override the default request headers:
 #DEFAULT_REQUEST_HEADERS = {
-#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#   'Accept-Language': 'en',
+#    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+#    "Accept-Language": "en",
 #}
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'jobparser.middlewares.JobparserSpiderMiddleware': 543,
+#    "bookparser.middlewares.BookparserSpiderMiddleware": 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'jobparser.middlewares.JobparserDownloaderMiddleware': 543,
+#    "bookparser.middlewares.BookparserDownloaderMiddleware": 543,
 #}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
 #EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
+#    "scrapy.extensions.telnet.TelnetConsole": None,
 #}
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+# Раскомментируем эти строчки, чтобы pipeline заработал
 ITEM_PIPELINES = {
-   'jobparser.pipelines.JobparserPipeline': 300,
+   "bookparser.pipelines.BookparserPipeline": 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -88,6 +96,11 @@ ITEM_PIPELINES = {
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 #HTTPCACHE_ENABLED = True
 #HTTPCACHE_EXPIRATION_SECS = 0
-#HTTPCACHE_DIR = 'httpcache'
+#HTTPCACHE_DIR = "httpcache"
 #HTTPCACHE_IGNORE_HTTP_CODES = []
-#HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+#HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
+
+# Set settings whose default value is deprecated to a future-proof value
+REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+FEED_EXPORT_ENCODING = "utf-8"
