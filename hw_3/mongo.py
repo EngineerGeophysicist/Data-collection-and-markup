@@ -1,106 +1,66 @@
-from pprint import pprint
-from bs4 import BeautifulSoup as bs, ResultSet
-import requests
+import json
 from pymongo import MongoClient
-from pprint import pprint
-import re
+
+# Подключение к серверу MongoDB
+client = MongoClient('mongodb://localhost:27017/')
+
+# Выбор базы данных и коллекции
+db = client['books']
+collection = db['books_toscrape_com']
+
+# Чтение файла JSON
+with open('result.json', 'r', encoding='utf-8') as file:
+    data = json.load(file)
 
 
+# # Вставка книг в коллекцию MongoDB
+for item in data:
+    collection.insert_one(item)
 
-def jobСollection():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'}
-    site = 'https://hh.ru/'
-    main_link = 'https://hh.ru/search/vacancy?L_is_autosearch=false&area=113&clusters=true&enable_snippets=true&search_period=30&text='
-    print('введите название вакансии:')
-    position = input()
+# вывод первой записи в коллекции
+all_docs = collection.find()
+first_doc = all_docs[0]
+print(first_doc)
+# Вывод объекта JSON
+pretty_json = json.dumps(first_doc, indent=4, default=str)
+print(pretty_json)
 
-    page_number = 0
-    next_button = []
+# Получение количества документов в коллекции с помощью функции count_documents()
+count = collection.count_documents({})
+print(f'Число записей в базе данных: {count}')
 
-    while next_button.__class__ != None.__class__:
-        addr = f'{main_link}{position}&page={page_number}'
-        response = requests.get(addr, headers=headers).text
-        soup = bs(response, 'lxml')
+# фильтрация документов по критериям
+query = {'category': 'Travel'}
+print(f"Количество документов c категорией 'Travel': {collection.count_documents(query)}")
 
-        next_button = soup.find('a', {'class': 'bloko-button HH-Pager-Controls-Next HH-Pager-Control'})
+# Использование проекции
+query = {'category': 'Travel'}
+projection = {"name": 1, "price": 1, "available": 1, "_id": 0}
+proj_docs = collection.find(query, projection)
+for doc in proj_docs:
+    print(doc)
 
-        vacanсy_block = soup.find_all('div', {'class': 'vacancy-serp'})[0]
-        vacanсy_list = vacanсy_block.find_all('div', {'data-qa': 'vacancy-serp__vacancy'})
-        page_number = page_number + 1
+# Использование оператора $lt и $gte
+AVAILABLE_1 = 2
+AVAILABLE_2 = 20
+query = {"available": {"$lt": AVAILABLE_1}}
+print(f"Количество документов c категорией available < {AVAILABLE_1}: {collection.count_documents(query)}")
+query = {"available": {"$gte": AVAILABLE_2}}
+print(f"Количество документов c категорией available >= {AVAILABLE_2}: {collection.count_documents(query)}")
 
-        for vacancy in vacanсy_list:
-            vacancy_data = {}
-            vacancy_title = vacancy.find('a', {'data-qa': 'vacancy-serp__vacancy-title'}).getText()
-            salary_bloc = vacancy.find('span', {'data-qa': 'vacancy-serp__vacancy-compensation'})
-            vacancy_salary_min = 0
-            vacancy_salary_max = 0
-            vacancy_currency = None
-            if salary_bloc.__class__ != None.__class__:
-                vacancy_salary = salary_bloc.getText().split(" ")
+# Использование оператора $regex
+WORD = "America"
+query = {"name": {"$regex": WORD, "$options": "i"}}
+print(f"Количество документов, содержащих '{WORD}': {collection.count_documents(query)}")
 
-                if vacancy_salary[0] == 'от':
-                    vacancy_salary_min = vacancy_salary[1].replace('\xa0', '')
-                elif vacancy_salary[0] == 'до':
-                    vacancy_salary_max = vacancy_salary[1].replace('\xa0', '')
-                else:
-                    range = vacancy_salary[0].split("-")
-                    vacancy_salary_min = range[0].replace('\xa0', '')
-                    vacancy_salary_max = range[1].replace('\xa0', '')
-                vacancy_currency = vacancy_salary[len(vacancy_salary) - 1]
-            vacancy_link = vacancy.find('a', {'data-qa': 'vacancy-serp__vacancy-title'})['href']
-            vacancy_id = re.findall('(\d+)', vacancy_link)[0]
-            vacancy_data['id'] = vacancy_id
-            vacancy_data['title'] = vacancy_title
-            vacancy_data['salary_min'] = int(vacancy_salary_min)
-            vacancy_data['salary_max'] = int(vacancy_salary_max)
-            vacancy_data['currency'] = vacancy_currency
-            vacancy_data['link'] = vacancy_link
-            vacancy_data['site'] = site
-            recTodb(vacancy_data)
+# Использование оператора $in
+query = {"category": {"$in": ["Travel", "Romance", "Science Fiction"]}}
+print(f"Количество документов в категории 'category': {collection.count_documents(query)}")
 
-def recTodb(list):
-    try:
-        vacs.insert_one(list)
-    except:
-        dubl.insert_one(list)
+# Использование оператора $all
+query = {"category": {"$all": ["Mystery"]}}
+print(f"Количество документов в категории 'category': {collection.count_documents(query)}")
 
-
-def printAll(collection):
-    for vac in collection.find():
-        pprint(vac)
-
-
-def findSalary(salary):
-    for vac in vacs.find({"salary_max": {'$gt': salary}}):
-        pprint(vac)
-
-
-
-
-client = MongoClient('localhost', 27017)
-db = client['vacancies']
-vacs = db.vacs
-dubl = db.dubl
-vacs.create_index("id")
-
-loop = 1
-while loop == 1:
-    print('Выберите действие: \n '
-          '1 - Обновить базу данных вакансий, \n'
-          '2 - Поиск вакансий по зарплате \n'
-          '3 - Вывести на экеран все вакансии \n'
-          '4 - Выход из программы')
-    task = input()
-    if task == '1':
-        jobСollection()
-    elif task == '2':
-        print('Выберите уровень ЗП:')
-        salary = int(input())
-        findSalary(salary)
-    elif task == '3':
-        printAll(vacs)
-    elif task == '4':
-        loop = 0
-
-
+# Использование оператора $ne
+query = {"category" : {"$ne": "Mystery"}}
+print(f"Количество документов в категории 'category': {collection.count_documents(query)}")
